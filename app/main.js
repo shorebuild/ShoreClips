@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, desktopCapturer, globalShortcut, shell, dia
 const fs = require('fs/promises');
 const path = require('path');
 const { spawn } = require('child_process');
+const ffmpegStatic = require('ffmpeg-static');
 
 let win;
 let clipDir;
@@ -60,11 +61,25 @@ ipcMain.handle('save-clip', async (_e, payload) => {
   if (!payload || typeof payload.data !== 'string' || !payload.data.startsWith('data:')) throw new Error('Invalid clip data.');
   const buffer = Buffer.from(payload.data.split(',')[1], 'base64');
   if (!buffer.length) throw new Error('The replay buffer was empty.');
+  if (buffer.length > 240 * 1024 * 1024) throw new Error('Replay is too large to export. Choose a shorter duration or lower recording resolution.');
   await fs.mkdir(clipDir,{recursive:true});
   const safe = (payload.name || 'ShoreClips-Replay').replace(/[^a-z0-9-_]/gi,'-').slice(0,60) || 'ShoreClips-Replay';
-  const dest = path.join(clipDir, safe + '-' + new Date().toISOString().replace(/[:.]/g,'-') + (payload.mimeType?.includes('mp4')?'.mp4':'.webm'));
-  await fs.writeFile(dest,buffer);
-  return { path:dest, name:path.basename(dest), size:buffer.length };
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+  const temp = path.join(app.getPath('temp'), safe + '-' + stamp + '.webm');
+  const dest = path.join(clipDir, safe + '-' + stamp + '.mp4');
+  await fs.writeFile(temp,buffer);
+  const ffmpegPath = (ffmpegStatic || '').replace('app.asar', 'app.asar.unpacked');
+  if (!ffmpegPath) throw new Error('FFmpeg encoder is unavailable in this build.');
+  await new Promise((resolve,reject) => {
+    const args = ['-hide_banner','-loglevel','error','-y','-i',temp,'-c:v','libx264','-preset','veryfast','-crf','24','-pix_fmt','yuv420p','-map','0:v:0','-map','0:a?','-c:a','aac','-b:a','160k','-movflags','+faststart',dest];
+    const proc=spawn(ffmpegPath,args);
+    let errorText='';
+    proc.stderr.on('data',d=>errorText+=d.toString());
+    proc.on('error',reject);
+    proc.on('close',code=>code===0?resolve():reject(new Error(errorText||('FFmpeg exited with code '+code))));
+  }).finally(()=>fs.rm(temp,{force:true}).catch(()=>{}));
+  const st=await fs.stat(dest);
+  return { path:dest, name:path.basename(dest), size:st.size };
 });
 ipcMain.handle('delete-clip', async (_e, name) => {
   const base = path.basename(String(name || ''));
