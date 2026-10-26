@@ -1,6 +1,6 @@
 {
   "name": "shoreclips",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "ShoreClips instant replay desktop app and website",
   "main": "app/main.js",
   "scripts": {
