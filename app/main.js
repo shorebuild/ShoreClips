@@ -7,7 +7,7 @@ const ffmpegStatic = require('ffmpeg-static');
 let win;
 let clipDir;
 let settingsPath;
-let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: false, microphoneEnabled: false };
+let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: true, microphoneEnabled: false };
 
 async function readSettings() {
   try { return { ...settings, ...JSON.parse(await fs.readFile(settingsPath, 'utf8')) }; }
