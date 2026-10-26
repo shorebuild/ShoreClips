@@ -4,7 +4,7 @@ let activeStream = null;
 let micStream = null;
 let recording = false;
 let recorder = null;
-let chunks = [];
+let initializationChunk = null;
 let history = [];
 let historyBytes = 0;
 let timer = null;
@@ -86,9 +86,10 @@ async function startBuffer() {
     }
     const mimeType=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
     recorder=new MediaRecorder(activeStream,mimeType?{mimeType,videoBitsPerSecond:6000000}:undefined);
-    chunks=[];history=[];historyBytes=0;
+    initializationChunk=null;history=[];historyBytes=0;
     recorder.ondataavailable=e=>{
       if(!e.data||!e.data.size)return;
+      if (!initializationChunk) initializationChunk=e.data;
       history.push({blob:e.data,time:Date.now()});historyBytes+=e.data.size;
       const cutoff=Date.now()-chosenDuration*1000;
       while(history.length>1 && history[0].time<cutoff){historyBytes-=history[0].blob.size;history.shift();}
@@ -119,8 +120,9 @@ function stopBuffer() {
 async function saveReplay() {
   if(!recording){toast('Start the replay buffer first.');return;}
   if(history.length<2){toast('Wait a few seconds for footage to buffer.');return;}
-  const blobs=history.map(x=>x.blob);
-  const mime=blobs[0].type||'video/webm';
+  const recent=history.map(x=>x.blob);
+  const mime=initializationChunk?.type||recent[0].type||'video/webm';
+  const blobs=[initializationChunk,...recent.filter(b=>b!==initializationChunk)].filter(Boolean);
   const dataBlob=new Blob(blobs,{type:mime});
   const reader=new FileReader();
   reader.onerror=()=>toast('Could not prepare replay file.');
