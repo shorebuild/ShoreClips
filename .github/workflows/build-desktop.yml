@@ -3,6 +3,7 @@ name: Build ShoreClips installers
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags:
       - "v*"
 
