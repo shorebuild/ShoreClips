@@ -1,0 +1,1 @@
+Native ShoreClips installers are being built and tested. The installer download button will be published once the workflow succeeds. This file intentionally replaces no binary installer.
