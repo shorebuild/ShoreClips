@@ -68,8 +68,13 @@ ipcMain.handle('save-clip', async (_e, payload) => {
   const temp = path.join(app.getPath('temp'), safe + '-' + stamp + '.webm');
   const dest = path.join(clipDir, safe + '-' + stamp + '.mp4');
   await fs.writeFile(temp,buffer);
-  const ffmpegPath = (ffmpegStatic || '').replace('app.asar', 'app.asar.unpacked');
+  const ffmpegPath = ffmpegStatic ? ffmpegStatic.replace('app.asar', 'app.asar.unpacked') : '';
   if (!ffmpegPath) throw new Error('FFmpeg encoder is unavailable in this build.');
+  try {
+    await fs.access(ffmpegPath);
+  } catch {
+    throw new Error('Bundled FFmpeg executable is missing: ' + ffmpegPath);
+  }
   await new Promise((resolve,reject) => {
     const args = ['-hide_banner','-loglevel','error','-y','-i',temp,'-c:v','libx264','-preset','veryfast','-crf','24','-pix_fmt','yuv420p','-map','0:v:0','-map','0:a?','-c:a','aac','-b:a','160k','-movflags','+faststart',dest];
     const proc=spawn(ffmpegPath,args);
