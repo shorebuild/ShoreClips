@@ -5,9 +5,9 @@
   "main": "app/main.js",
   "scripts": {
     "start": "electron .",
-    "dist:mac": "electron-builder --mac dmg zip",
-    "dist:win": "electron-builder --win nsis",
-    "dist:linux": "electron-builder --linux AppImage"
+    "dist:mac": "electron-builder --mac dmg zip --publish never",
+    "dist:win": "electron-builder --win nsis --publish never",
+    "dist:linux": "electron-builder --linux AppImage --publish never"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0"
