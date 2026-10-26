@@ -39,7 +39,14 @@ async function refreshSources() {
       option.textContent=(source.type==='Screen'?'Display: ':'Window: ')+source.name; select.append(option);
     }
     if(old && list.some(s=>s.id===old)) select.value=old;
-    else if(list.length) select.selectedIndex=0;
+    else if(list.length) {
+      // Prefer a game window, otherwise capture the desktop rather than ShoreClips itself.
+      const game = list.find(s => s.type === 'Window' && /dawn client|minecraft|roblox|game/i.test(s.name) && !/shoreclips/i.test(s.name));
+      const screen = list.find(s => s.type === 'Screen');
+      const fallback = list.find(s => !/shoreclips/i.test(s.name));
+      const preferred = game || screen || fallback || list[0];
+      select.value = preferred.id;
+    }
     selectedSource=select.value;
     $('sourceSummary').textContent=select.selectedOptions[0]?.textContent||'Not selected';
     if(!list.length) { select.innerHTML='<option value="">No screens/windows found</option>'; $('sourceSummary').textContent='Not selected'; }
@@ -174,4 +181,7 @@ async function loadPreferences(){
  } catch(e){console.error(e);}
 }
 window.addEventListener('beforeunload',()=>{if(recording)stopBuffer();});
-(async()=>{await loadPreferences();await refreshSources();await refreshClips();const s=await window.shoreclips.getSettings();if(s.launchBufferAutomatically&&$('sourceSelect').value)startBuffer();})();
+(async()=>{await loadPreferences();await refreshSources();await refreshClips();const s=await window.shoreclips.getSettings();
+  // Always-on replay: start capture immediately after source discovery.
+  if ($('sourceSelect').value) await startBuffer();
+  else toast('No capture source is available yet. Check Screen Recording permission, then click Refresh sources.');})();
