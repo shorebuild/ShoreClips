@@ -17,7 +17,7 @@ concurrency:
 jobs:
   macos:
     name: Build macOS DMG and ZIP
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
