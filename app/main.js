@@ -151,7 +151,7 @@ ipcMain.handle('share-clip', async (_e, name) => {
 ipcMain.handle('open-clips-folder', () => shell.openPath(clipDir));
 ipcMain.handle('open-clip', async (_e, name) => {
   const base = path.basename(String(name || ''));
-  if (!base || base !== name || !/\\.(mp4|webm|mov)$/i.test(base)) throw new Error('Invalid clip name.');
+  if (!base || base !== name || !/\.(mp4|webm|mov)$/i.test(base)) throw new Error('Invalid clip name.');
   const filePath = path.join(clipDir, base);
   await fs.access(filePath);
   const player = new BrowserWindow({
