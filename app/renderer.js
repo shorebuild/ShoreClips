@@ -180,7 +180,7 @@ async function loadPreferences(){
   $('hotkeySelect').value=s.hotkey||'F7';
   $('autoBuffer').checked=!!s.launchBufferAutomatically;
   $('microphoneEnabled').checked=!!s.microphoneEnabled;
-  $('shareApiUrl').value=s.shareApiUrl||'https://shoreclips.pages.dev'; $('shareToken').value=s.shareToken||'';
+  $('shareApiUrl').value=s.shareApiUrl||'https://shoreclips-api.oliver-pilchak.workers.dev'; $('shareToken').value=s.shareToken||'';
   $('heroHotkey').textContent=s.hotkey||'F7';$('setupHotkey').textContent=s.hotkey||'F7';
  } catch(e){console.error(e);}
 }
