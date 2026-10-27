@@ -144,8 +144,9 @@ ipcMain.handle('share-clip', async (_e, name) => {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || ('Upload failed with HTTP ' + response.status));
-  if (typeof payload.url !== 'string' || !payload.url.startsWith('https://')) throw new Error('Sharing service returned an invalid link.');
-  return { url: payload.url };
+  if (typeof payload.id !== 'string' || !/^[a-f0-9]{32}$/i.test(payload.id)) throw new Error('Sharing service returned an invalid clip ID.');
+  // Use the branded share URL, not the API Worker URL.
+  return { url: 'https://shoreclips.pages.dev/c/' + payload.id };
 });
 
 ipcMain.handle('open-clips-folder', () => shell.openPath(clipDir));
