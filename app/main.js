@@ -42,8 +42,38 @@ app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
 ipcMain.handle('list-sources', async () => {
-  const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 360, height: 220 }, fetchWindowIcons: true });
-  return sources.map(s => ({ id:s.id, name:s.name, type:s.id.startsWith('screen:') ? 'Screen' : 'Window', thumbnail:s.thumbnail.toDataURL() }));
+  // Source selection does not need thumbnails or window icons; keep the
+  // macOS capture request as small and reliable as possible.
+  let sources;
+  let firstError;
+  try {
+    sources = await desktopCapturer.getSources({
+      types: ['screen', 'window'],
+      thumbnailSize: { width: 0, height: 0 },
+      fetchWindowIcons: false
+    });
+  } catch (error) {
+    firstError = error;
+    try {
+      sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: { width: 0, height: 0 },
+        fetchWindowIcons: false
+      });
+    } catch (fallbackError) {
+      throw new Error(
+        'macOS could not enumerate capture sources. Confirm Screen Recording permission, quit ShoreClips completely, and reopen the installed copy from Applications. ' +
+        'Initial error: ' + (firstError?.message || String(firstError)) +
+        '; screen-only retry: ' + (fallbackError?.message || String(fallbackError))
+      );
+    }
+  }
+  return sources.map(s => ({
+    id: s.id,
+    name: s.name,
+    type: s.id.startsWith('screen:') ? 'Screen' : 'Window',
+    thumbnail: ''
+  }));
 });
 ipcMain.handle('list-clips', async () => {
   await fs.mkdir(clipDir, { recursive: true });
