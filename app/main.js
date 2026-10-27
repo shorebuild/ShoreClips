@@ -7,7 +7,7 @@ const ffmpegStatic = require('ffmpeg-static');
 let win;
 let clipDir;
 let settingsPath;
-let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: true, microphoneEnabled: false };
+let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: true, microphoneEnabled: false, shareApiUrl: 'https://shoreclips.pages.dev', shareToken: '' };
 
 async function readSettings() {
   try { return { ...settings, ...JSON.parse(await fs.readFile(settingsPath, 'utf8')) }; }
@@ -122,6 +122,32 @@ ipcMain.handle('delete-clip', async (_e, name) => {
   await fs.unlink(path.join(clipDir,base));
   return true;
 });
+
+ipcMain.handle('share-clip', async (_e, name) => {
+  const base = path.basename(String(name || ''));
+  if (!base || base !== name || !/\.(mp4|webm|mov)$/i.test(base)) throw new Error('Invalid clip name.');
+  const prefs = await readSettings();
+  if (!prefs.shareToken) throw new Error('Public sharing is not configured yet. Set your Cloudflare upload token in Settings → Public clip sharing.');
+  const filePath = path.join(clipDir, base);
+  const st = await fs.stat(filePath);
+  if (st.size > 150 * 1024 * 1024) throw new Error('This clip is larger than the 150 MB sharing limit. Save a shorter clip and try again.');
+  const endpoint = (prefs.shareApiUrl || 'https://shoreclips.pages.dev').replace(/\/$/, '') + '/api/clips';
+  const bytes = await fs.readFile(filePath);
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + prefs.shareToken,
+      'Content-Type': 'video/mp4',
+      'X-Clip-Name': encodeURIComponent(base)
+    },
+    body: bytes
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || ('Upload failed with HTTP ' + response.status));
+  if (typeof payload.url !== 'string' || !payload.url.startsWith('https://')) throw new Error('Sharing service returned an invalid link.');
+  return { url: payload.url };
+});
+
 ipcMain.handle('open-clips-folder', () => shell.openPath(clipDir));
 ipcMain.handle('open-clip', async (_e, name) => {
   const base = path.basename(String(name || ''));
@@ -147,6 +173,8 @@ ipcMain.handle('save-settings', async (_e, patch) => {
   if (Number.isFinite(Number(patch?.duration))) next.duration = Math.max(15,Math.min(300,Number(patch.duration)));
   if (typeof patch?.launchBufferAutomatically === 'boolean') next.launchBufferAutomatically=patch.launchBufferAutomatically;
   if (typeof patch?.microphoneEnabled === 'boolean') next.microphoneEnabled=patch.microphoneEnabled;
+  if (typeof patch?.shareApiUrl === 'string') next.shareApiUrl=patch.shareApiUrl.trim().replace(/\/$/, '').slice(0,300);
+  if (typeof patch?.shareToken === 'string') next.shareToken=patch.shareToken.trim().slice(0,500);
   if (typeof patch?.hotkey === 'string' && /^F([1-9]|1[0-2])$/.test(patch.hotkey)) next.hotkey=patch.hotkey;
   await fs.writeFile(settingsPath,JSON.stringify(next,null,2));
   if (next.hotkey !== old.hotkey && !registerHotkey(next.hotkey)) {
