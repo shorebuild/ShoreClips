@@ -106,7 +106,7 @@ ipcMain.handle('save-clip', async (_e, payload) => {
     throw new Error('Bundled FFmpeg executable is missing: ' + ffmpegPath);
   }
   await new Promise((resolve,reject) => {
-    const args = ['-hide_banner','-loglevel','error','-y','-i',temp,'-c:v','libx264','-preset','veryfast','-crf','24','-pix_fmt','yuv420p','-map','0:v:0','-map','0:a?','-c:a','aac','-b:a','160k','-movflags','+faststart',dest];
+    const args = ['-hide_banner','-loglevel','error','-xerror','-fflags','+genpts','-y','-i',temp,'-map','0:v:0','-map','0:a?','-c:v','libx264','-preset','ultrafast','-crf','23','-pix_fmt','yuv420p','-tag:v','avc1','-c:a','aac','-b:a','128k','-movflags','+faststart',dest];
     const proc=spawn(ffmpegPath,args);
     let errorText='';
     proc.stderr.on('data',d=>errorText+=d.toString());
@@ -125,7 +125,19 @@ ipcMain.handle('delete-clip', async (_e, name) => {
 ipcMain.handle('open-clips-folder', () => shell.openPath(clipDir));
 ipcMain.handle('open-clip', async (_e, name) => {
   const base = path.basename(String(name || ''));
-  return shell.openPath(path.join(clipDir,base));
+  if (!base || base !== name || !/\\.(mp4|webm|mov)$/i.test(base)) throw new Error('Invalid clip name.');
+  const filePath = path.join(clipDir, base);
+  await fs.access(filePath);
+  const player = new BrowserWindow({
+    width: 1100, height: 720, minWidth: 640, minHeight: 420,
+    title: base,
+    backgroundColor: '#0b0f12',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+  });
+  await player.loadFile(path.join(__dirname, 'clip-viewer.html'), {
+    query: { src: require('url').pathToFileURL(filePath).href, title: base }
+  });
+  return true;
 });
 ipcMain.handle('get-settings', async () => readSettings());
 ipcMain.handle('get-app-info', async () => ({version:app.getVersion(),platform:process.platform,clipsDirectory:clipDir}));
