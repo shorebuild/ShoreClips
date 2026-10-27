@@ -156,13 +156,15 @@ async function refreshClips() {
       left.append(title,meta);
       const actions=document.createElement('div');actions.className='clipactions';
       const play=document.createElement('button');play.className='secondary';play.textContent='Open';play.onclick=()=>window.shoreclips.openClip(clip.name);
+      const share=document.createElement('button');share.className='secondary';share.textContent='Share';share.onclick=async()=>{try{const result=await window.shoreclips.shareClip(clip.name);await navigator.clipboard.writeText(result.url);toast('Public clip link copied to clipboard.');}catch(e){await window.shoreclips.showError('Could not share clip: '+e.message);}};
       const del=document.createElement('button');del.className='secondary';del.textContent='Delete';del.onclick=async()=>{if(confirm('Delete '+clip.name+'?')){await window.shoreclips.deleteClip(clip.name);refreshClips();}};
-      actions.append(play,del);row.append(left,actions);root.append(row);
+      actions.append(play,share,del);row.append(left,actions);root.append(row);
     }
   }catch(e){console.error(e);toast('Could not load clips.');}
 }
 if($('hotkeySelect')) $('hotkeySelect').addEventListener('change',e=>persist({hotkey:e.target.value}));
 if($('autoBuffer')) $('autoBuffer').addEventListener('change',e=>persist({launchBufferAutomatically:e.target.checked}));
+if($('saveShareSettings')) $('saveShareSettings').addEventListener('click',async()=>{try{await persist({shareApiUrl:$('shareApiUrl').value,shareToken:$('shareToken').value});toast('Sharing settings saved.');}catch{}});
 if($('microphoneEnabled')) $('microphoneEnabled').addEventListener('change',e=>{
  if(recording){e.target.checked=!e.target.checked;toast('Stop the buffer before changing microphone settings.');return;}
  persist({microphoneEnabled:e.target.checked});
@@ -178,6 +180,7 @@ async function loadPreferences(){
   $('hotkeySelect').value=s.hotkey||'F7';
   $('autoBuffer').checked=!!s.launchBufferAutomatically;
   $('microphoneEnabled').checked=!!s.microphoneEnabled;
+  $('shareApiUrl').value=s.shareApiUrl||'https://shoreclips.pages.dev'; $('shareToken').value=s.shareToken||'';
   $('heroHotkey').textContent=s.hotkey||'F7';$('setupHotkey').textContent=s.hotkey||'F7';
  } catch(e){console.error(e);}
 }
