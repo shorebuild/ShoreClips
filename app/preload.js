@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('shoreclips', {
   saveClip: payload => ipcRenderer.invoke('save-clip', payload),
   deleteClip: name => ipcRenderer.invoke('delete-clip', name),
   openClip: name => ipcRenderer.invoke('open-clip', name),
+  shareClip: name => ipcRenderer.invoke('share-clip', name),
   openClipsFolder: () => ipcRenderer.invoke('open-clips-folder'),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: settings => ipcRenderer.invoke('save-settings', settings),
