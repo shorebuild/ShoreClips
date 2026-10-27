@@ -7,7 +7,7 @@ const ffmpegStatic = require('ffmpeg-static');
 let win;
 let clipDir;
 let settingsPath;
-let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: true, microphoneEnabled: false, shareApiUrl: 'https://shoreclips.pages.dev', shareToken: '' };
+let settings = { hotkey: 'F7', duration: 60, launchBufferAutomatically: true, microphoneEnabled: false, shareApiUrl: 'https://shoreclips-api.oliver-pilchak.workers.dev', shareToken: '' };
 
 async function readSettings() {
   try { return { ...settings, ...JSON.parse(await fs.readFile(settingsPath, 'utf8')) }; }
@@ -131,7 +131,7 @@ ipcMain.handle('share-clip', async (_e, name) => {
   const filePath = path.join(clipDir, base);
   const st = await fs.stat(filePath);
   if (st.size > 150 * 1024 * 1024) throw new Error('This clip is larger than the 150 MB sharing limit. Save a shorter clip and try again.');
-  const endpoint = (prefs.shareApiUrl || 'https://shoreclips.pages.dev').replace(/\/$/, '') + '/api/clips';
+  const endpoint = (prefs.shareApiUrl || 'https://shoreclips-api.oliver-pilchak.workers.dev').replace(/\/$/, '') + '/api/clips';
   const bytes = await fs.readFile(filePath);
   const response = await fetch(endpoint, {
     method: 'POST',
