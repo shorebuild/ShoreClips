@@ -93,7 +93,7 @@ async function startBuffer() {
     }
     // Prefer VP8 over VP9 for lower CPU overhead on older Intel Macs.
     const mimeType=['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
-    recorder=new MediaRecorder(activeStream,mimeType?{mimeType,videoBitsPerSecond:4500000}:undefined);
+    recorder=new MediaRecorder(activeStream,mimeType?{mimeType,videoBitsPerSecond:2500000}:undefined);
     initializationChunk=null;history=[];historyBytes=0;
     recorder.ondataavailable=e=>{
       if(!e.data||!e.data.size)return;
@@ -156,7 +156,7 @@ async function refreshClips() {
       left.append(title,meta);
       const actions=document.createElement('div');actions.className='clipactions';
       const play=document.createElement('button');play.className='secondary';play.textContent='Open';play.onclick=()=>window.shoreclips.openClip(clip.name);
-      const share=document.createElement('button');share.className='secondary';share.textContent='Share';share.onclick=async()=>{try{const result=await window.shoreclips.shareClip(clip.name);await navigator.clipboard.writeText(result.url);toast('Public clip link copied to clipboard.');}catch(e){await window.shoreclips.showError('Could not share clip: '+e.message);}};
+      const share=document.createElement('button');share.className='secondary';share.textContent='Share';share.onclick=async()=>{if(share.disabled)return;share.disabled=true;const oldLabel=share.textContent;share.textContent='Uploading…';toast('Uploading clip… keep ShoreClips open.');try{const result=await window.shoreclips.shareClip(clip.name);await navigator.clipboard.writeText(result.url);share.textContent='Link copied';toast('Upload complete — public clip link copied.');}catch(e){share.textContent=oldLabel;await window.shoreclips.showError('Could not share clip: '+e.message);}finally{share.disabled=false;if(share.textContent==='Uploading…')share.textContent=oldLabel;}};
       const del=document.createElement('button');del.className='secondary';del.textContent='Delete';del.onclick=async()=>{if(confirm('Delete '+clip.name+'?')){await window.shoreclips.deleteClip(clip.name);refreshClips();}};
       actions.append(play,share,del);row.append(left,actions);root.append(row);
     }
