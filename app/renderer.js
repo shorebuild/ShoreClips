@@ -91,8 +91,9 @@ async function startBuffer() {
       micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
       for(const track of micStream.getAudioTracks()) activeStream.addTrack(track);
     }
-    const mimeType=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
-    recorder=new MediaRecorder(activeStream,mimeType?{mimeType,videoBitsPerSecond:6000000}:undefined);
+    // Prefer VP8 over VP9 for lower CPU overhead on older Intel Macs.
+    const mimeType=['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+    recorder=new MediaRecorder(activeStream,mimeType?{mimeType,videoBitsPerSecond:4500000}:undefined);
     initializationChunk=null;history=[];historyBytes=0;
     recorder.ondataavailable=e=>{
       if(!e.data||!e.data.size)return;
