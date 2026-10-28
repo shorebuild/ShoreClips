@@ -30,7 +30,7 @@ jobs:
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "9.5.0"
+          gradle-version: "9.5.1"
 
       - name: Compile mod
         working-directory: ShoreClipsStudio/mod
@@ -46,12 +46,12 @@ jobs:
           jar tf "$JAR" | grep -q 'net/shoreclips/mod/ShoreClipsClient.class'
           echo "Built $JAR"
           mkdir -p release
-          cp "$JAR" release/ShoreClips-Fabric-26.1.2.jar
+          cp "$JAR" release/ShoreClips-Fabric-26.2.jar
 
       - name: Upload installable JAR
         uses: actions/upload-artifact@v4
         with:
-          name: ShoreClips-Fabric-26.1.2
-          path: release/ShoreClips-Fabric-26.1.2.jar
+          name: ShoreClips-Fabric-26.2
+          path: release/ShoreClips-Fabric-26.2.jar
           if-no-files-found: error
           retention-days: 30
