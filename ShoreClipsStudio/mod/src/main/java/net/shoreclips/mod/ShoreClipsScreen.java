@@ -104,7 +104,7 @@ public final class ShoreClipsScreen extends Screen {
 
     private void openControlsHelp() {
         if (Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().gui.setOverlayMessage(
+            Minecraft.getInstance().gui.hud.setOverlayMessage(
                     Component.literal("Change 'ShoreClips: Save replay' in Options > Controls > Key Binds."), false);
         }
     }
@@ -115,7 +115,7 @@ public final class ShoreClipsScreen extends Screen {
             else throw new IllegalStateException("Desktop browsing unavailable");
         } catch (Exception exception) {
             if (Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().gui.setOverlayMessage(Component.literal("Could not open link."), false);
+                Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal("Could not open link."), false);
             }
         }
     }
@@ -138,6 +138,6 @@ public final class ShoreClipsScreen extends Screen {
 
     @Override
     public void onClose() {
-        Minecraft.getInstance().setScreen(parent);
+        Minecraft.getInstance().gui.setScreen(parent);
     }
 }
