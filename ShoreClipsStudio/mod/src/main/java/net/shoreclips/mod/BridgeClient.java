@@ -79,6 +79,24 @@ public final class BridgeClient {
         });
     }
 
+    public static void reportFps(int fps) {
+        if (fps <= 0) return;
+        JsonObject config = readConfig();
+        String token = value(config, "bridgeToken");
+        int port = config.has("port") ? config.get("port").getAsInt() : 17842;
+        if (token.isBlank()) return;
+
+        JsonObject body = new JsonObject();
+        body.addProperty("fps", Math.max(1, Math.min(500, fps)));
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/v1/fps"))
+                .timeout(Duration.ofSeconds(2))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(body))).build();
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                .exceptionally(error -> null);
+    }
+
     public static void linkCode(String code, Consumer<Result> callback) {
         JsonObject config = readConfig();
         String apiBase = value(config, "apiBase");
