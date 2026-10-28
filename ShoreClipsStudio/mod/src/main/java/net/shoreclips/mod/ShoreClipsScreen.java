@@ -1,7 +1,6 @@
 package net.shoreclips.mod;
 
 import java.net.URI;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -105,17 +104,18 @@ public final class ShoreClipsScreen extends Screen {
 
     private void openControlsHelp() {
         if (Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().player.displayClientMessage(
-                    Component.literal("Change 'ShoreClips: Save replay' in Options > Controls > Key Binds."), false);
+            Minecraft.getInstance().gui.getChat().addMessage(
+                    Component.literal("Change 'ShoreClips: Save replay' in Options > Controls > Key Binds."));
         }
     }
 
     private void open(String uri) {
         try {
-            Util.getPlatform().openUri(URI.create(uri));
+            if (java.awt.Desktop.isDesktopSupported()) java.awt.Desktop.getDesktop().browse(URI.create(uri));
+            else throw new IllegalStateException("Desktop browsing unavailable");
         } catch (Exception exception) {
             if (Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.displayClientMessage(Component.literal("Could not open link."), false);
+                Minecraft.getInstance().gui.getChat().addMessage(Component.literal("Could not open link."));
             }
         }
     }
@@ -138,6 +138,6 @@ public final class ShoreClipsScreen extends Screen {
 
     @Override
     public void onClose() {
-        Minecraft.getInstance().gui.setScreen(parent);
+        Minecraft.getInstance().setScreen(parent);
     }
 }
