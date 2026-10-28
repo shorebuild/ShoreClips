@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "shoreclips",
+  "version": "${version}",
+  "name": "ShoreClips",
+  "description": "ShoreClips instant replay controls and connected clip sharing.",
+  "authors": ["ShoreClips"],
+  "contact": {
+    "homepage": "https://shoreclips.pages.dev",
+    "sources": "https://github.com/shorebuild/ShoreClips"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": { "client": ["net.shoreclips.mod.ShoreClipsClient"] },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
