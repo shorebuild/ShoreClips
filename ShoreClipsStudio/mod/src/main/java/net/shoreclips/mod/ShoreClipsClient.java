@@ -2,7 +2,7 @@ package net.shoreclips.mod;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -27,10 +27,10 @@ public final class ShoreClipsClient implements ClientModInitializer {
                 KEY_CATEGORY));
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("shoreclip")
+            dispatcher.register(ClientCommands.literal("shoreclip")
                     .executes(context -> {
                         Minecraft client = Minecraft.getInstance();
-                        client.execute(() -> client.gui.setScreen(new ShoreClipsScreen(client.gui.screen())));
+                        client.execute(() -> client.setScreen(new ShoreClipsScreen(client.screen)));
                         return 1;
                     })
                     .then(ClientCommandManager.literal("link").executes(context -> {
@@ -48,7 +48,7 @@ public final class ShoreClipsClient implements ClientModInitializer {
                         String message = result.ok()
                                 ? CONFIG.savedMessage + (result.shareUrl().isBlank() ? " (saved locally)" : " — " + result.shareUrl())
                                 : "ShoreClips: " + result.message();
-                        client.player.displayClientMessage(Component.literal(message), false);
+                        client.gui.getChat().addMessage(Component.literal(message));
                     }));
                 }
             }
