@@ -40,7 +40,17 @@ public final class ShoreClipsClient implements ClientModInitializer {
                     })));
         });
 
+        final int[] fpsTicks = {0};
+        final int[] lastReportedFps = {-1};
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (++fpsTicks[0] >= 10) {
+                fpsTicks[0] = 0;
+                int fps = client.getFps();
+                if (fps > 0 && (lastReportedFps[0] < 0 || Math.abs(fps - lastReportedFps[0]) >= 2)) {
+                    lastReportedFps[0] = fps;
+                    BridgeClient.reportFps(fps);
+                }
+            }
             while (CLIP_KEY.consumeClick()) {
                 if (client.player != null) {
                     BridgeClient.saveReplay(CONFIG.durationSeconds, result -> client.execute(() -> {
