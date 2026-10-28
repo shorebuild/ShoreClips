@@ -41,7 +41,7 @@ public final class LinkCodeScreen extends Screen {
         BridgeClient.linkCode(code.getValue(), result -> Minecraft.getInstance().execute(() -> {
             busy = false;
             status = result.message();
-            if (result.ok()) Minecraft.getInstance().setScreen(new ShoreClipsScreen(parent));
+            if (result.ok()) Minecraft.getInstance().gui.setScreen(new ShoreClipsScreen(parent));
         }));
     }
 
@@ -55,6 +55,6 @@ public final class LinkCodeScreen extends Screen {
 
     @Override
     public void onClose() {
-        Minecraft.getInstance().setScreen(parent);
+        Minecraft.getInstance().gui.setScreen(parent);
     }
 }
