@@ -30,12 +30,12 @@ public final class ShoreClipsClient implements ClientModInitializer {
             dispatcher.register(ClientCommands.literal("shoreclip")
                     .executes(context -> {
                         Minecraft client = Minecraft.getInstance();
-                        client.execute(() -> client.setScreen(new ShoreClipsScreen(client.screen)));
+                        client.execute(() -> client.gui.setScreen(new ShoreClipsScreen(client.gui.screen())));
                         return 1;
                     })
                     .then(ClientCommands.literal("link").executes(context -> {
                         Minecraft client = Minecraft.getInstance();
-                        client.execute(() -> client.setScreen(new LinkCodeScreen(client.screen)));
+                        client.execute(() -> client.gui.setScreen(new LinkCodeScreen(client.gui.screen())));
                         return 1;
                     })));
         });
@@ -58,7 +58,7 @@ public final class ShoreClipsClient implements ClientModInitializer {
                         String message = result.ok()
                                 ? CONFIG.savedMessage + (result.shareUrl().isBlank() ? " (saved locally)" : " — " + result.shareUrl())
                                 : "ShoreClips: " + result.message();
-                        client.gui.setOverlayMessage(Component.literal(message), false);
+                        client.gui.hud.setOverlayMessage(Component.literal(message), false);
                     }));
                 }
             }
