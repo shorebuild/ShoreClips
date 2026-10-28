@@ -23,7 +23,6 @@ public final class LinkCodeScreen extends Screen {
         int cx = width / 2;
         code = new EditBox(font, cx - 100, height / 2 - 22, 200, 20, Component.literal("6-digit code"));
         code.setMaxLength(6);
-        code.setFilter(value -> value.matches("[0-9]*"));
         addRenderableWidget(code);
         addRenderableWidget(Button.builder(Component.literal("Link account"), button -> submit())
                 .bounds(cx - 100, height / 2 + 8, 200, 22).build());
@@ -33,7 +32,7 @@ public final class LinkCodeScreen extends Screen {
     }
 
     private void submit() {
-        if (busy || code.getValue().length() != 6) {
+        if (busy || !code.getValue().matches("[0-9]{6}")) {
             status = "Enter all six digits.";
             return;
         }
@@ -42,7 +41,7 @@ public final class LinkCodeScreen extends Screen {
         BridgeClient.linkCode(code.getValue(), result -> Minecraft.getInstance().execute(() -> {
             busy = false;
             status = result.message();
-            if (result.ok()) Minecraft.getInstance().gui.setScreen(new ShoreClipsScreen(parent));
+            if (result.ok()) Minecraft.getInstance().setScreen(new ShoreClipsScreen(parent));
         }));
     }
 
